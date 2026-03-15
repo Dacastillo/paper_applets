@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phonon-Induced Spin Dynamics | Interactive Abstract</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --cobalt: #1e40af; --slate: #475569; --bg: #ffffff; --panel: #f8fafc; }
+        body { margin: 0; font-family: 'Outfit', sans-serif; background: var(--bg); display: flex; height: 100vh; overflow: hidden; color: #1e293b; }
+        
+        #sidebar { width: 450px; padding: 2rem; background: var(--panel); border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; z-index: 10; }
+        #main-view { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
+        
+        .badge { display: inline-block; padding: 4px 10px; background: #e0f2fe; color: #0369a1; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem; }
+        h1 { font-size: 1.4rem; margin: 0; line-height: 1.2; color: #0f172a; }
+        .abstract-text { font-size: 0.85rem; line-height: 1.5; color: var(--slate); text-align: justify; }
+        
+        .control-card { background: white; padding: 1.2rem; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .control-label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; }
+        input[type="range"] { width: 100%; accent-color: var(--cobalt); cursor: pointer; }
+        
+        #canvas-3d { flex-grow: 1; background: radial-gradient(circle, #ffffff 0%, #f1f5f9 100%); }
+        #charts-container { height: 280px; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem; border-top: 1px solid #e2e8f0; background: white; }
+        
+        .math-box { font-family: 'Times New Roman', serif; font-style: italic; font-size: 0.9rem; color: #1e40af; margin-top: 0.5rem; }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <div class="badge">Quantum Sci. Technol. 10 (2025)</div>
+    <h1>Dinámica de No-Equilibrio en Espines Sólidos</h1>
+    <p class="abstract-text">
+        Análisis de la interacción espín-fonón en centros de color. El modelo utiliza una densidad espectral óhmica $J(\omega) \propto \omega^s e^{-\omega/\omega_c}$ para derivar las tasas de transición inducidas por el baño térmico.
+    </p>
+
+    <div class="control-card">
+        <div class="control-label">Temperatura (T) <span id="t-val">10 K</span></div>
+        <input type="range" id="temp" min="0.1" max="100" step="0.1" value="10">
+        <div class="math-box">Influencia en n(ω) = [e^{ℏω/k_BT} - 1]⁻¹</div>
+    </div>
+
+    <div class="control-card">
+        <div class="control-label">Acoplamiento (η) <span id="eta-val">0.05</span></div>
+        <input type="range" id="eta" min="0.01" max="0.5" step="0.01" value="0.05">
+        <div class="math-box">J(ω) = η ω^s exp(-ω/ω_c)</div>
+    </div>
+
+    <div class="control-card">
+        <div class="control-label">Frecuencia de Corte (ω_c) <span id="wc-val">5.0</span></div>
+        <input type="range" id="wc" min="1" max="20" step="0.5" value="5">
+    </div>
+
+    <div class="control-card" style="background: #f1f5f9; border: 1px solid #cbd5e1;">
+        <div style="font-size: 0.75rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">📖 Cómo usar este applet</div>
+        <ul style="font-size: 0.7rem; color: #64748b; margin: 0; padding-left: 1rem; line-height: 1.6;">
+            <li>Ajusta la <b>temperatura</b> para ver su efecto en la población del espín</li>
+            <li>Modifica el <b>acoplamiento η</b> para cambiar la tasa de decoherencia</li>
+            <li>La flecha azul representa el vector de espín (precesión + fluctuaciones)</li>
+            <li>Gráficos: evolución temporal de poblaciones (izq) y densidad espectral J(ω) (der)</li>
+        </ul>
+    </div>
+
+    <div class="control-card" style="background: #f1f5f9; border: 1px solid #cbd5e1; margin-top: 0.5rem;">
+        <div style="font-size: 0.75rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">🔬 Metodología</div>
+        <ul style="font-size: 0.7rem; color: #64748b; margin: 0; padding-left: 1rem; line-height: 1.6;">
+            <li>Ecuación maestra de Redfield para sistema abierto</li>
+            <li>Baño térmico bosónico con densidad espectral óhmica</li>
+            <li>Aproximación de onda rotante (RWA)</li>
+        </ul>
+    </div>
+
+    <div style="margin-top: auto; font-size: 0.75rem; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 1rem;">
+        <div style="margin-bottom: 0.5rem;"><b>Autores:</b> Ariel Norambuena, et al.</div>
+        <div style="margin-bottom: 0.5rem;"><b>DOI:</b> <a href="https://doi.org/10.1088/2058-9565/ad6b9e" target="_blank" style="color: #0369a1; text-decoration: none;">10.1088/2058-9565/ad6b9e</a></div>
+        <div><b>Afiliaciones:</b> Universidad de Concepción (Chile), Institutos colaboradores</div>
+    </div>
+</div>
+
+<div id="main-view">
+    <div id="canvas-3d"></div>
+    <div id="charts-container">
+        <canvas id="popChart"></canvas>
+        <canvas id="spectralChart"></canvas>
+    </div>
+</div>
+
+<script>
+    // --- ESTADO GLOBAL ---
+    let params = { T: 10, eta: 0.05, wc: 5, omega0: 2.0 };
+    let time = 0;
+    let populations = { p0: [], p1: [], t: [] };
+
+    // --- THREE.JS: VISUALIZACIÓN DEL ESPÍN ---
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, (window.innerWidth - 450) / (window.innerHeight - 280), 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth - 450, window.innerHeight - 280);
+    document.getElementById('canvas-3d').appendChild(renderer.domElement);
+
+    // Luces y Escena
+    scene.add(new THREE.AmbientLight(0xffffff, 1));
+    const pointLight = new THREE.PointLight(0xffffff, 1.5);
+    pointLight.position.set(5, 5, 5);
+    scene.add(pointLight);
+
+    // Representación del Centro NV (Diamante)
+    const crystal = new THREE.Group();
+    const carbonGeo = new THREE.SphereGeometry(0.15, 32, 32);
+    const carbonMat = new THREE.MeshPhongMaterial({ color: '#94a3b8', shininess: 100 });
+    
+    // Lattice simple
+    for(let i=-1; i<=1; i++) {
+        for(let j=-1; j<=1; j++) {
+            for(let k=-1; k<=1; k++) {
+                if((i+j+k) % 2 === 0) {
+                    const c = new THREE.Mesh(carbonGeo, carbonMat);
+                    c.position.set(i*1.5, j*1.5, k*1.5);
+                    crystal.add(c);
+                }
+            }
+        }
+    }
+    scene.add(crystal);
+
+    // El Espín (Vector de Bloch central)
+    const arrowGroup = new THREE.Group();
+    const arrowGeo = new THREE.CylinderGeometry(0.05, 0.05, 2, 32);
+    const arrowHead = new THREE.ConeGeometry(0.15, 0.4, 32);
+    const arrowMat = new THREE.MeshPhongMaterial({ color: '#1e40af' });
+    
+    const shaft = new THREE.Mesh(arrowGeo, arrowMat);
+    const head = new THREE.Mesh(arrowHead, arrowMat);
+    head.position.y = 1;
+    arrowGroup.add(shaft, head);
+    scene.add(arrowGroup);
+
+    camera.position.set(5, 3, 8);
+    camera.lookAt(0, 0, 0);
+
+    // --- CHART.JS: DINÁMICA Y ESPECTRO ---
+    const ctxPop = document.getElementById('popChart').getContext('2d');
+    const popChart = new Chart(ctxPop, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                { label: 'ρ₀₀ (GND)', borderColor: '#1e40af', data: [], borderWidth: 2, pointRadius: 0 },
+                { label: 'ρ₁₁ (EXC)', borderColor: '#ef4444', data: [], borderWidth: 2, pointRadius: 0 }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { y: { min: 0, max: 1, title: { display: true, text: 'Población' } } },
+            plugins: { legend: { position: 'top', labels: { boxWidth: 10, font: { size: 10 } } } }
+        }
+    });
+
+    const ctxSpec = document.getElementById('spectralChart').getContext('2d');
+    const spectralChart = new Chart(ctxSpec, {
+        type: 'line',
+        data: {
+            labels: Array.from({length: 50}, (_, i) => (i * 0.5).toFixed(1)),
+            datasets: [{ label: 'Densidad Espectral J(ω)', borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, data: [], pointRadius: 0 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { y: { display: false } },
+            plugins: { legend: { display: true, labels: { boxWidth: 10, font: { size: 10 } } } }
+        }
+    });
+
+    // --- LÓGICA FÍSICA ---
+    function solveMasterEquation() {
+        const k_B = 1.0; // Unidades reducidas
+        const h_bar = 1.0;
+        
+        // n(ω) Bose-Einstein
+        const n_avg = 1 / (Math.exp((h_bar * params.omega0) / (k_B * params.T)) - 1);
+        
+        // J(ω) Ohmic
+        const J_omega = params.eta * params.omega0 * Math.exp(-params.omega0 / params.wc);
+        
+        // Tasas de transición (Redfield)
+        const Gamma_down = J_omega * (n_avg + 1);
+        const Gamma_up = J_omega * n_avg;
+        
+        // Evolución temporal simplificada
+        populations.t = []; populations.p0 = []; populations.p1 = [];
+        let p1 = 0.9; // Inicia fuera del equilibrio
+        for(let t=0; t<50; t+=0.5) {
+            const p1_steady = Gamma_up / (Gamma_up + Gamma_down);
+            const rate = Gamma_up + Gamma_down;
+            const p1_t = p1_steady + (0.9 - p1_steady) * Math.exp(-rate * t);
+            populations.t.push(t.toFixed(1));
+            populations.p1.push(p1_t);
+            populations.p0.push(1 - p1_t);
+        }
+        
+        popChart.data.labels = populations.t;
+        popChart.data.datasets[0].data = populations.p0;
+        popChart.data.datasets[1].data = populations.p1;
+        popChart.update('none');
+
+        // Actualizar Espectro
+        const specData = spectralChart.data.labels.map(w => {
+            const freq = parseFloat(w);
+            return params.eta * freq * Math.exp(-freq / params.wc);
+        });
+        spectralChart.data.datasets[0].data = specData;
+        spectralChart.update('none');
+    }
+
+    // --- INTERACCIÓN ---
+    document.getElementById('temp').oninput = (e) => {
+        params.T = parseFloat(e.target.value);
+        document.getElementById('t-val').innerText = params.T + " K";
+        solveMasterEquation();
+    };
+    document.getElementById('eta').oninput = (e) => {
+        params.eta = parseFloat(e.target.value);
+        document.getElementById('eta-val').innerText = params.eta;
+        solveMasterEquation();
+    };
+    document.getElementById('wc').oninput = (e) => {
+        params.wc = parseFloat(e.target.value);
+        document.getElementById('wc-val').innerText = params.wc;
+        solveMasterEquation();
+    };
+
+    function animate() {
+        requestAnimationFrame(animate);
+        time += 0.01;
+        
+        // Precesión del espín y fluctuaciones
+        const p1 = populations.p1[0] || 0.5;
+        const theta = p1 * Math.PI; 
+        arrowGroup.rotation.z = theta + Math.sin(time * 5) * (params.eta * 2);
+        arrowGroup.rotation.y += 0.02;
+        
+        // Vibración de la red (fonones)
+        crystal.scale.set(
+            1 + Math.sin(time * 10) * 0.02 * (params.T/50),
+            1 + Math.cos(time * 11) * 0.02 * (params.T/50),
+            1 + Math.sin(time * 12) * 0.02 * (params.T/50)
+        );
+
+        renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+        camera.aspect = (window.innerWidth - 450) / (window.innerHeight - 280);
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth - 450, window.innerHeight - 280);
+    });
+
+    solveMasterEquation();
+    animate();
+</script>
+</body>
+</html>
