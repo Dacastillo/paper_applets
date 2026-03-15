@@ -44,17 +44,23 @@
 
         #canvas-3d { width: 100%; flex-grow: 1; min-height: 0; background: radial-gradient(circle, #ffffff 0%, #f1f5f9 100%); }
 
+        /* Language selector */
+        .lang-selector { position: fixed; top: 1rem; left: 1rem; z-index: 100; display: flex; gap: 0.25rem; background: white; padding: 0.25rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .lang-btn { padding: 0.35rem 0.6rem; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 6px; font-size: 0.75rem; font-weight: 600; transition: all 0.2s; }
+        .lang-btn:hover { background: #f1f5f9; }
+        .lang-btn.active { background: var(--accent); color: white; }
+
         /* Mobile menu toggle */
         .menu-toggle { display: none; position: fixed; top: 1rem; right: 1rem; z-index: 100; background: var(--accent); border: none; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
 
         /* Responsive */
         @media (max-width: 900px) {
-            #sidebar { 
-                position: fixed; 
-                left: 0; 
-                top: 0; 
-                height: 100vh; 
-                width: 320px; 
+            #sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                width: 320px;
                 transform: translateX(-100%);
                 padding: 1rem;
             }
@@ -70,6 +76,7 @@
             #main-view { height: 100vh; }
             #charts-grid { height: 200px; }
             h1 { font-size: 1.2rem; }
+            .lang-selector { top: auto; bottom: 1rem; left: 50%; transform: translateX(-50%); }
         }
 
         /* Overlay for mobile */
@@ -79,57 +86,64 @@
 </head>
 <body>
 
-<button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
+<!-- Language Selector -->
+<div class="lang-selector">
+    <button class="lang-btn active" data-lang="es" onclick="setLanguage('es')">ES</button>
+    <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+    <button class="lang-btn" data-lang="pt" onclick="setLanguage('pt')">PT</button>
+</div>
+
+<button class="menu-toggle" onclick="toggleMenu()">☰ <span data-i18n="menu">Menú</span></button>
 <div class="overlay" onclick="toggleMenu()"></div>
 
 <div id="sidebar">
     <div class="badge">Nanomaterials 2023, 13, 1429</div>
-    <h1>Carbono Amorfo Nanoporoso de Ultra-Alta Resistencia</h1>
-    <p class="abstract-text">
+    <h1 data-i18n="title">Carbono Amorfo Nanoporoso de Ultra-Alta Resistencia</h1>
+    <p class="abstract-text" data-i18n="abstract">
         Estudio de las propiedades mecánicas de estructuras de a-C nanoporoso bajo tensión y compresión uniaxial. El material muestra una desviación de las leyes de Gibson-Ashby debido a su rigidez estructural intrínseca.
     </p>
 
     <div class="control-group">
-        <div class="label-row"> Densidad Relativa (ρ/ρs) <span id="rho-val">0.30</span></div>
+        <div class="label-row"> <span data-i18n="densityLabel">Densidad Relativa (ρ/ρs)</span> <span id="rho-val">0.30</span></div>
         <input type="range" id="rho-slider" min="0.1" max="0.7" step="0.05" value="0.3">
         <div class="math-formula">E ∝ (ρ/ρs)ⁿ (n ≈ 2.4 - 3.2)</div>
     </div>
 
     <div class="control-group">
-        <div class="label-row"> Hibridación sp³ <span id="sp3-val">45%</span></div>
+        <div class="label-row"> <span data-i18n="sp3Label">Hibridación sp³</span> <span id="sp3-val">45%</span></div>
         <input type="range" id="sp3-slider" min="20" max="80" step="5" value="45">
-        <div class="math-formula">σ_y aumenta con el contenido sp³</div>
+        <div class="math-formula" data-i18n="sp3Formula">σ_y aumenta con el contenido sp³</div>
     </div>
 
     <div style="margin-top: 0.5rem;">
-        <div class="stat-box"><span class="stat-label">Módulo de Young (E)</span><span class="stat-value" id="e-display">42 GPa</span></div>
-        <div class="stat-box"><span class="stat-label">Límite Elástico (σ_y)</span><span class="stat-value" id="sy-display">8.5 GPa</span></div>
-        <div class="stat-box"><span class="stat-label">Potencial Interatómico</span><span class="stat-value">AIREBO / GAP</span></div>
+        <div class="stat-box"><span class="stat-label" data-i18n="youngModulus">Módulo de Young (E)</span><span class="stat-value" id="e-display">42 GPa</span></div>
+        <div class="stat-box"><span class="stat-label" data-i18n="yieldStrength">Límite Elástico (σ_y)</span><span class="stat-value" id="sy-display">8.5 GPa</span></div>
+        <div class="stat-box"><span class="stat-label" data-i18n="potential">Potencial Interatómico</span><span class="stat-value">AIREBO / GAP</span></div>
     </div>
 
     <div class="control-group" style="margin-top: 0.5rem; background: #f1f5f9; border: 1px solid #cbd5e1;">
-        <div style="font-size: 0.75rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">📖 Cómo usar este applet</div>
+        <div style="font-size: 0.75rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;" data-i18n="howToUse">📖 Cómo usar este applet</div>
         <ul style="font-size: 0.7rem; color: #64748b; margin: 0; padding-left: 1rem; line-height: 1.6;">
-            <li>Ajusta la <b>densidad relativa</b> para ver cómo escala el módulo elástico</li>
-            <li>Modifica el <b>contenido sp³</b> para observar su efecto en la resistencia</li>
-            <li>La estructura 3D muestra la red nanoporosa (nodos = átomos, líneas = enlaces)</li>
-            <li>El gráfico izquierdo: curva esfuerzo-deformación; derecho: ley de escala</li>
+            <li data-i18n="howToUse1">Ajusta la <b>densidad relativa</b> para ver cómo escala el módulo elástico</li>
+            <li data-i18n="howToUse2">Modifica el <b>contenido sp³</b> para observar su efecto en la resistencia</li>
+            <li data-i18n="howToUse3">La estructura 3D muestra la red nanoporosa (nodos = átomos, líneas = enlaces)</li>
+            <li data-i18n="howToUse4">El gráfico izquierdo: curva esfuerzo-deformación; derecho: ley de escala</li>
         </ul>
     </div>
 
     <div class="control-group" style="margin-top: 0.5rem; background: #f1f5f9; border: 1px solid #cbd5e1;">
-        <div style="font-size: 0.75rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">🔬 Metodología</div>
+        <div style="font-size: 0.75rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;" data-i18n="methodology">🔬 Metodología</div>
         <ul style="font-size: 0.7rem; color: #64748b; margin: 0; padding-left: 1rem; line-height: 1.6;">
-            <li>Dinámica Molecular (MD) con potenciales AIREBO</li>
-            <li>Deformación uniaxial a T = 300 K</li>
-            <li>Análisis de tensores de virial para esfuerzos</li>
+            <li data-i18n="method1">Dinámica Molecular (MD) con potenciales AIREBO</li>
+            <li data-i18n="method2">Deformación uniaxial a T = 300 K</li>
+            <li data-i18n="method3">Análisis de tensores de virial para esfuerzos</li>
         </ul>
     </div>
 
     <div style="margin-top: auto; font-size: 0.7rem; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 0.8rem;">
-        <div style="margin-bottom: 0.5rem;"><b>Autores:</b> D. Castillo-Castro, F. Valencia, E. Bringa, et al.</div>
-        <div style="margin-bottom: 0.5rem;"><b>DOI:</b> <a href="https://doi.org/10.3390/nano13081429" target="_blank" style="color: var(--accent); text-decoration: none;">10.3390/nano13081429</a></div>
-        <div><b>Afiliaciones:</b> Universidad Nacional de Rosario (Argentina), CONICET</div>
+        <div style="margin-bottom: 0.5rem;"><b data-i18n="authors">Autores:</b> D. Castillo-Castro, F. Valencia, E. Bringa, et al.</div>
+        <div style="margin-bottom: 0.5rem;"><b data-i18n="doi">DOI:</b> <a href="https://doi.org/10.3390/nano13081429" target="_blank" style="color: var(--accent); text-decoration: none;">10.3390/nano13081429</a></div>
+        <div><b data-i18n="affiliations">Afiliaciones:</b> <span data-i18n="affiliationsText">Universidad Nacional de Rosario (Argentina), CONICET</span></div>
     </div>
 </div>
 
@@ -142,6 +156,131 @@
 </div>
 
 <script>
+    // --- TRADUCCIONES / TRANSLATIONS / TRADUÇÕES ---
+    const translations = {
+        es: {
+            menu: "Menú",
+            title: "Carbono Amorfo Nanoporoso de Ultra-Alta Resistencia",
+            abstract: "Estudio de las propiedades mecánicas de estructuras de a-C nanoporoso bajo tensión y compresión uniaxial. El material muestra una desviación de las leyes de Gibson-Ashby debido a su rigidez estructural intrínseca.",
+            densityLabel: "Densidad Relativa (ρ/ρs)",
+            sp3Label: "Hibridación sp³",
+            sp3Formula: "σ_y aumenta con el contenido sp³",
+            youngModulus: "Módulo de Young (E)",
+            yieldStrength: "Límite Elástico (σ_y)",
+            potential: "Potencial Interatómico",
+            howToUse: "📖 Cómo usar este applet",
+            howToUse1: "Ajusta la <b>densidad relativa</b> para ver cómo escala el módulo elástico",
+            howToUse2: "Modifica el <b>contenido sp³</b> para observar su efecto en la resistencia",
+            howToUse3: "La estructura 3D muestra la red nanoporosa (nodos = átomos, líneas = enlaces)",
+            howToUse4: "El gráfico izquierdo: curva esfuerzo-deformación; derecho: ley de escala",
+            methodology: "🔬 Metodología",
+            method1: "Dinámica Molecular (MD) con potenciales AIREBO",
+            method2: "Deformación uniaxial a T = 300 K",
+            method3: "Análisis de tensores de virial para esfuerzos",
+            authors: "Autores:",
+            doi: "DOI:",
+            affiliations: "Afiliaciones:",
+            affiliationsText: "Universidad Nacional de Rosario (Argentina), CONICET",
+            chartStress: "Esfuerzo (GPa)",
+            chartScaling: "E vs ρ",
+            chartXLabel: "ρ/ρs",
+            chartYLabel: "E (GPa)"
+        },
+        en: {
+            menu: "Menu",
+            title: "Ultra-High Strength Nanoporous Amorphous Carbon",
+            abstract: "Study of the mechanical properties of nanoporous a-C structures under uniaxial tension and compression. The material shows a deviation from Gibson-Ashby laws due to its intrinsic structural rigidity.",
+            densityLabel: "Relative Density (ρ/ρs)",
+            sp3Label: "sp³ Hybridization",
+            sp3Formula: "σ_y increases with sp³ content",
+            youngModulus: "Young's Modulus (E)",
+            yieldStrength: "Yield Strength (σ_y)",
+            potential: "Interatomic Potential",
+            howToUse: "📖 How to use this applet",
+            howToUse1: "Adjust the <b>relative density</b> to see how the elastic modulus scales",
+            howToUse2: "Modify the <b>sp³ content</b> to observe its effect on strength",
+            howToUse3: "The 3D structure shows the nanoporous network (nodes = atoms, lines = bonds)",
+            howToUse4: "Left chart: stress-strain curve; Right chart: scaling law",
+            methodology: "🔬 Methodology",
+            method1: "Molecular Dynamics (MD) with AIREBO potentials",
+            method2: "Uniaxial deformation at T = 300 K",
+            method3: "Virial stress tensor analysis",
+            authors: "Authors:",
+            doi: "DOI:",
+            affiliations: "Affiliations:",
+            affiliationsText: "Universidad Nacional de Rosario (Argentina), CONICET",
+            chartStress: "Stress (GPa)",
+            chartScaling: "E vs ρ",
+            chartXLabel: "ρ/ρs",
+            chartYLabel: "E (GPa)"
+        },
+        pt: {
+            menu: "Menu",
+            title: "Carbono Amorfo Nanoporoso de Ultra-Alta Resistência",
+            abstract: "Estudo das propriedades mecânicas de estruturas de a-C nanoporoso sob tração e compressão uniaxial. O material mostra um desvio das leis de Gibson-Ashby devido à sua rigidez estrutural intrínseca.",
+            densityLabel: "Densidade Relativa (ρ/ρs)",
+            sp3Label: "Hibridização sp³",
+            sp3Formula: "σ_y aumenta com o conteúdo sp³",
+            youngModulus: "Módulo de Young (E)",
+            yieldStrength: "Limite Elástico (σ_y)",
+            potential: "Potencial Interatômico",
+            howToUse: "📖 Como usar este applet",
+            howToUse1: "Ajuste a <b>densidade relativa</b> para ver como escala o módulo elástico",
+            howToUse2: "Modifique o <b>conteúdo sp³</b> para observar seu efeito na resistência",
+            howToUse3: "A estrutura 3D mostra a rede nanoporosa (nós = átomos, linhas = ligações)",
+            howToUse4: "Gráfico esquerdo: curva tensão-deformação; direito: lei de escala",
+            methodology: "🔬 Metodologia",
+            method1: "Dinâmica Molecular (MD) com potenciais AIREBO",
+            method2: "Deformação uniaxial a T = 300 K",
+            method3: "Análise de tensores viriais para tensões",
+            authors: "Autores:",
+            doi: "DOI:",
+            affiliations: "Afiliações:",
+            affiliationsText: "Universidad Nacional de Rosario (Argentina), CONICET",
+            chartStress: "Tensão (GPa)",
+            chartScaling: "E vs ρ",
+            chartXLabel: "ρ/ρs",
+            chartYLabel: "E (GPa)"
+        }
+    };
+
+    let currentLang = localStorage.getItem('appletLang') || 'es';
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('appletLang', lang);
+        document.documentElement.lang = lang;
+
+        // Update buttons
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === lang);
+        });
+
+        // Update texts
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.dataset.i18n;
+            if (translations[lang][key]) {
+                el.innerHTML = translations[lang][key];
+            }
+        });
+
+        // Update charts
+        updateChartLabels(lang);
+    }
+
+    function updateChartLabels(lang) {
+        if (stressChart) {
+            stressChart.data.datasets[0].label = translations[lang].chartStress;
+            stressChart.update('none');
+        }
+        if (scalingChart) {
+            scalingChart.data.datasets[0].label = translations[lang].chartScaling;
+            scalingChart.options.scales.x.title.text = translations[lang].chartXLabel;
+            scalingChart.options.scales.y.title.text = translations[lang].chartYLabel;
+            scalingChart.update('none');
+        }
+    }
+
     function toggleMenu() {
         document.getElementById('sidebar').classList.toggle('open');
         document.querySelector('.overlay').classList.toggle('show');
@@ -267,7 +406,6 @@
         renderer.render(scene, camera);
     }
 
-    // Resize handler
     function handleResize() {
         const width = canvasContainer.clientWidth;
         const height = canvasContainer.clientHeight;
@@ -276,7 +414,9 @@
         renderer.setSize(width, height);
     }
 
+    // Initialize
     window.addEventListener('resize', handleResize);
+    setLanguage(currentLang);
     buildFoam();
     updateCharts();
     animate();
