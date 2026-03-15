@@ -9,34 +9,81 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #0f172a; --accent: #dc2626; --bg: #ffffff; --card: #f8fafc; --sp3: #3b82f6; --sp2: #ef4444; }
+        * { box-sizing: border-box; }
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); display: flex; height: 100vh; overflow: hidden; color: #1e293b; }
-        
-        #sidebar { width: 420px; padding: 2.5rem; background: var(--card); border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 1.5rem; overflow-y: auto; z-index: 10; }
-        #viewport-container { flex-grow: 1; position: relative; display: flex; flex-direction: column; }
-        
+
+        #sidebar { 
+            width: 380px; 
+            min-width: 280px;
+            padding: 1.5rem; 
+            background: var(--card); 
+            border-right: 1px solid #e2e8f0; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 1rem; 
+            overflow-y: auto; 
+            z-index: 10;
+            transition: transform 0.3s ease;
+        }
+        #viewport-container { flex-grow: 1; position: relative; display: flex; flex-direction: column; min-width: 0; }
+
         .badge { display: inline-block; padding: 4px 10px; background: #fee2e2; color: #991b1b; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem; }
-        h1 { font-size: 1.5rem; margin: 0; color: var(--primary); letter-spacing: -0.02em; line-height: 1.2; }
+        h1 { font-size: 1.35rem; margin: 0; color: var(--primary); letter-spacing: -0.02em; line-height: 1.2; }
         .abstract-text { font-size: 0.85rem; line-height: 1.6; color: #64748b; text-align: justify; }
 
-        .control-panel { background: white; padding: 1.2rem; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .control-panel { background: white; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; font-size: 0.85rem; font-weight: 600; }
-        
-        input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
-        
-        #canvas-3d { flex-grow: 1; background: #fff; }
-        #plot-container { height: 260px; padding: 1rem; background: white; border-top: 1px solid #e2e8f0; }
 
-        .legend { display: flex; gap: 1rem; font-size: 0.75rem; margin-top: 0.5rem; }
+        input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+
+        #canvas-3d { flex-grow: 1; background: #fff; width: 100%; }
+        #plot-container { height: 240px; padding: 0.75rem; background: white; border-top: 1px solid #e2e8f0; }
+
+        .legend { display: flex; gap: 1rem; font-size: 0.75rem; margin-top: 0.5rem; flex-wrap: wrap; }
         .legend-item { display: flex; align-items: center; gap: 5px; }
         .dot { width: 10px; height: 10px; border-radius: 50%; }
 
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .stat-card { background: #f1f5f9; padding: 10px; border-radius: 8px; text-align: center; }
-        .stat-val { display: block; font-weight: 700; color: var(--primary); font-size: 1.1rem; }
+        .stat-val { display: block; font-weight: 700; color: var(--primary); font-size: 1rem; }
         .stat-lbl { font-size: 0.65rem; color: #64748b; text-transform: uppercase; }
+
+        /* Mobile menu toggle */
+        .menu-toggle { display: none; position: fixed; top: 1rem; right: 1rem; z-index: 100; background: var(--accent); border: none; color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            #sidebar { 
+                position: fixed; 
+                left: 0; 
+                top: 0; 
+                height: 100vh; 
+                width: 300px; 
+                transform: translateX(-100%);
+                padding: 1rem;
+            }
+            #sidebar.open { transform: translateX(0); }
+            .menu-toggle { display: block; }
+            #plot-container { height: 200px; }
+        }
+
+        @media (max-width: 600px) {
+            #sidebar { width: 100%; height: auto; max-height: 70vh; border-right: none; border-bottom: 1px solid #e2e8f0; }
+            #sidebar.open { transform: translateY(0); }
+            #plot-container { height: 180px; }
+            h1 { font-size: 1.2rem; }
+            .stat-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Overlay for mobile */
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 9; }
+        .overlay.show { display: block; }
     </style>
 </head>
 <body>
+
+<button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
+<div class="overlay" onclick="toggleMenu()"></div>
 
 <div id="sidebar">
     <div class="badge">J. Mater. Sci. (2024)</div>
@@ -103,24 +150,28 @@
 </div>
 
 <script>
+    function toggleMenu() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.querySelector('.overlay').classList.toggle('show');
+    }
+
     // --- DATOS TÉCNICOS ---
     const simData = [];
     for(let e=0; e<=0.5; e+=0.01) {
-        let p = 0;
-        let d = 0;
-        // Carga elástica -> amorfización -> descarga
-        if(e <= 0.15) { p = e * 800; d = 0; } // Elástico
-        else if(e <= 0.35) { p = 120 + (e-0.15)*100 + Math.sin(e*50)*5; d = (e-0.15)*100; } // Plasticidad/Amorfización
-        else { p = 140 - (e-0.35)*400; d = 20 + (e-0.35)*150; } // Descarga: Multiplicación de dislocaciones
+        let p = 0, d = 0;
+        if(e <= 0.15) { p = e * 800; d = 0; }
+        else if(e <= 0.35) { p = 120 + (e-0.15)*100 + Math.sin(e*50)*5; d = (e-0.15)*100; }
+        else { p = 140 - (e-0.35)*400; d = 20 + (e-0.35)*150; }
         simData.push({e, p, d});
     }
 
-    // --- THREE.JS: NANOESTRUCTURA ---
+    // --- THREE.JS ---
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(40, (window.innerWidth - 420) / (window.innerHeight - 260), 0.1, 1000);
+    const canvasContainer = document.getElementById('canvas-3d');
+    const camera = new THREE.PerspectiveCamera(40, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(window.innerWidth - 420, window.innerHeight - 260);
-    document.getElementById('canvas-3d').appendChild(renderer.domElement);
+    renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+    canvasContainer.appendChild(renderer.domElement);
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.8));
     const light = new THREE.DirectionalLight(0xffffff, 1);
@@ -135,7 +186,6 @@
     const sp3Mat = new THREE.MeshPhongMaterial({ color: '#3b82f6' });
     const sp2Mat = new THREE.MeshPhongMaterial({ color: '#ef4444' });
 
-    // Crear "Nanopartícula" (Esfera de átomos)
     const radius = 3;
     for(let x=-radius; x<=radius; x+=0.6) {
         for(let y=-radius; y<=radius; y+=0.6) {
@@ -154,7 +204,7 @@
     camera.position.set(8, 6, 10);
     camera.lookAt(0, 0, 0);
 
-    // --- CHART.JS: CURVA P-ε ---
+    // --- CHART.JS ---
     const ctx = document.getElementById('stressStrainPlot').getContext('2d');
     const chart = new Chart(ctx, {
         type: 'line',
@@ -173,7 +223,7 @@
         options: {
             responsive: true, maintainAspectRatio: false,
             scales: {
-                x: { title: { display: true, text: 'Strain (ε)' } },
+                x: { title: { display: true, text: 'Strain (ε)' }, ticks: { maxRotation: 45 } },
                 y: { title: { display: true, text: 'Pressure (GPa)' }, min: 0 }
             },
             plugins: { legend: { display: false } }
@@ -182,25 +232,20 @@
 
     // --- INTERACTIVIDAD ---
     const slider = document.getElementById('strain-slider');
-    
+
     function updateVisuals() {
         const strain = parseFloat(slider.value);
         document.getElementById('strain-val').innerText = strain.toFixed(2);
-        
-        // Buscar datos en el array
+
         const idx = Math.floor(strain * 100);
         const current = simData[idx] || simData[simData.length-1];
-        
+
         document.getElementById('stress-val').innerText = current.p.toFixed(1) + " GPa";
         document.getElementById('disloc-val').innerText = Math.floor(current.d);
 
-        // Deformar la partícula 3D
         const compressY = 1 - strain;
-        const expandXZ = 1 + strain * 0.5; // Efecto Poisson
-
         atoms.forEach(a => {
             a.position.y = a.userData.origY * compressY;
-            // Amorfización visual (cambio de color en el núcleo bajo tensión alta)
             const isCore = a.userData.dist < 1.5;
             if(strain > 0.18 && isCore) {
                 a.material = sp2Mat;
@@ -211,7 +256,6 @@
             }
         });
 
-        // Actualizar gráfico
         chart.data.datasets[0].data = simData.slice(0, idx + 1).map(d => d.p);
         chart.update('none');
     }
@@ -224,12 +268,15 @@
         renderer.render(scene, camera);
     }
 
-    window.addEventListener('resize', () => {
-        camera.aspect = (window.innerWidth - 420) / (window.innerHeight - 260);
+    function handleResize() {
+        const width = canvasContainer.clientWidth;
+        const height = canvasContainer.clientHeight;
+        camera.aspect = width / height;
         camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth - 420, window.innerHeight - 260);
-    });
+        renderer.setSize(width, height);
+    }
 
+    window.addEventListener('resize', handleResize);
     updateVisuals();
     animate();
 </script>

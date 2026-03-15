@@ -9,28 +9,78 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { --carbon: #171717; --neon-blue: #00e5ff; --glass: rgba(255, 255, 255, 0.05); }
+        * { box-sizing: border-box; }
         body { margin: 0; font-family: 'Outfit', sans-serif; background: #0a0a0a; color: #e5e5e5; display: flex; height: 100vh; overflow: hidden; }
-        
-        #sidebar { width: 440px; padding: 2rem; background: #111; border-right: 1px solid #333; display: flex; flex-direction: column; gap: 1.2rem; overflow-y: auto; z-index: 10; }
-        #main-view { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); }
-        
+
+        #sidebar { 
+            width: 400px; 
+            min-width: 320px;
+            padding: 1.5rem; 
+            background: #111; 
+            border-right: 1px solid #333; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 1rem; 
+            overflow-y: auto; 
+            z-index: 10;
+            transition: transform 0.3s ease;
+        }
+        #main-view { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); min-width: 0; }
+
         .badge { display: inline-block; padding: 4px 12px; background: var(--neon-blue); color: #000; border-radius: 4px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.5rem; }
-        h1 { font-size: 1.6rem; margin: 0; color: #fff; line-height: 1.1; }
+        h1 { font-size: 1.4rem; margin: 0; color: #fff; line-height: 1.2; }
         .abstract-text { font-size: 0.85rem; line-height: 1.6; color: #a3a3a3; text-align: justify; }
 
-        .control-group { background: #1a1a1a; padding: 1.2rem; border-radius: 8px; border: 1px solid #333; }
+        .control-group { background: #1a1a1a; padding: 1rem; border-radius: 8px; border: 1px solid #333; }
         .label-row { display: flex; justify-content: space-between; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; color: var(--neon-blue); margin-bottom: 0.5rem; }
         input[type="range"] { width: 100%; accent-color: var(--neon-blue); cursor: pointer; background: #333; }
 
-        #charts-grid { height: 300px; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem; background: #0f0f0f; border-top: 1px solid #333; }
+        #charts-grid { height: 280px; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; padding: 0.75rem; background: #0f0f0f; border-top: 1px solid #333; }
         .math-formula { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #666; margin-top: 0.5rem; border-left: 2px solid var(--neon-blue); padding-left: 10px; }
-        
+
         .stat-box { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding: 8px 0; font-size: 0.85rem; }
         .stat-label { color: #737373; }
         .stat-value { color: #fff; font-weight: 600; }
+
+        #canvas-3d { width: 100%; flex-grow: 1; min-height: 0; }
+
+        /* Mobile menu toggle */
+        .menu-toggle { display: none; position: fixed; top: 1rem; right: 1rem; z-index: 100; background: var(--neon-blue); border: none; color: #000; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            #sidebar { 
+                position: fixed; 
+                left: 0; 
+                top: 0; 
+                height: 100vh; 
+                width: 320px; 
+                transform: translateX(-100%);
+                padding: 1rem;
+            }
+            #sidebar.open { transform: translateX(0); }
+            .menu-toggle { display: block; }
+            #main-view { margin-left: 0; }
+            #charts-grid { height: 220px; grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 600px) {
+            #sidebar { width: 100%; height: auto; max-height: 80vh; border-right: none; border-bottom: 1px solid #333; }
+            #sidebar.open { transform: translateY(0); }
+            #main-view { height: 100vh; }
+            #charts-grid { height: 200px; }
+            h1 { font-size: 1.2rem; }
+        }
+
+        /* Overlay for mobile */
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9; }
+        .overlay.show { display: block; }
     </style>
 </head>
 <body>
+
+<button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
+<div class="overlay" onclick="toggleMenu()"></div>
 
 <div id="sidebar">
     <div class="badge">Nanomaterials 2023, 13, 1429</div>
@@ -51,13 +101,13 @@
         <div class="math-formula">σ_y aumenta con el contenido sp³</div>
     </div>
 
-    <div style="margin-top: 1rem;">
+    <div style="margin-top: 0.5rem;">
         <div class="stat-box"><span class="stat-label">Módulo de Young (E)</span><span class="stat-value" id="e-display">42 GPa</span></div>
         <div class="stat-box"><span class="stat-label">Límite Elástico (σ_y)</span><span class="stat-value" id="sy-display">8.5 GPa</span></div>
         <div class="stat-box"><span class="stat-label">Potencial Interatómico</span><span class="stat-value">AIREBO / GAP</span></div>
     </div>
 
-    <div class="control-group" style="margin-top: 1rem; background: #0d1117; border: 1px solid #30363d;">
+    <div class="control-group" style="margin-top: 0.5rem; background: #0d1117; border: 1px solid #30363d;">
         <div style="font-size: 0.75rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">📖 Cómo usar este applet</div>
         <ul style="font-size: 0.7rem; color: #8b949e; margin: 0; padding-left: 1rem; line-height: 1.6;">
             <li>Ajusta la <b>densidad relativa</b> para ver cómo escala el módulo elástico</li>
@@ -84,7 +134,7 @@
 </div>
 
 <div id="main-view">
-    <div id="canvas-3d" style="flex-grow: 1;"></div>
+    <div id="canvas-3d"></div>
     <div id="charts-grid">
         <canvas id="stressChart"></canvas>
         <canvas id="scalingChart"></canvas>
@@ -92,25 +142,29 @@
 </div>
 
 <script>
+    function toggleMenu() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.querySelector('.overlay').classList.toggle('show');
+    }
+
     // --- LÓGICA DE FÍSICA ---
     let state = { rho: 0.3, sp3: 0.45 };
 
     function calculateMechanics() {
-        // Leyes de escala del paper
-        const E_s = 500; // Módulo del a-C bulk (promedio)
-        const n = 2.8; 
+        const E_s = 500;
+        const n = 2.8;
         const E = E_s * Math.pow(state.rho, n) * (0.5 + state.sp3);
         const sy = 150 * Math.pow(state.rho, 2.5) * state.sp3;
-        
         return { E: E.toFixed(1), sy: sy.toFixed(1) };
     }
 
-    // --- THREE.JS: ESTRUCTURA NANOPOROSA ---
+    // --- THREE.JS ---
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, (window.innerWidth - 440) / (window.innerHeight - 300), 0.1, 1000);
+    const canvasContainer = document.getElementById('canvas-3d');
+    const camera = new THREE.PerspectiveCamera(45, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(window.innerWidth - 440, window.innerHeight - 300);
-    document.getElementById('canvas-3d').appendChild(renderer.domElement);
+    renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+    canvasContainer.appendChild(renderer.domElement);
 
     const foamGroup = new THREE.Group();
     scene.add(foamGroup);
@@ -124,29 +178,21 @@
 
     function buildFoam() {
         while(foamGroup.children.length > 0) foamGroup.remove(foamGroup.children[0]);
-        
         const count = Math.floor(state.rho * 400);
         const points = [];
         for(let i=0; i<count; i++) {
-            const p = new THREE.Vector3(
-                (Math.random() - 0.5) * 6,
-                (Math.random() - 0.5) * 6,
-                (Math.random() - 0.5) * 6
-            );
+            const p = new THREE.Vector3((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6);
             points.push(p);
             const node = new THREE.Mesh(nodeGeo, nodeMat);
             node.position.copy(p);
             foamGroup.add(node);
         }
-
-        // Crear "ligamentos" (conexiones)
         const lineMat = new THREE.LineBasicMaterial({ color: '#222', transparent: true, opacity: 0.4 });
         for(let i=0; i<points.length; i++) {
             for(let j=i+1; j<points.length; j++) {
                 if(points[i].distanceTo(points[j]) < 1.2) {
                     const geometry = new THREE.BufferGeometry().setFromPoints([points[i], points[j]]);
-                    const line = new THREE.Line(geometry, lineMat);
-                    foamGroup.add(line);
+                    foamGroup.add(new THREE.Line(geometry, lineMat));
                 }
             }
         }
@@ -169,6 +215,20 @@
         }
     });
 
+    const ctxScaling = document.getElementById('scalingChart').getContext('2d');
+    const scalingChart = new Chart(ctxScaling, {
+        type: 'line',
+        data: {
+            labels: ['0.1', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7'],
+            datasets: [{ label: 'E vs ρ', borderColor: '#00e5ff', backgroundColor: 'rgba(0,229,255,0.1)', fill: true, data: [], borderWidth: 2, pointRadius: 3 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { x: { title: { display: true, text: 'ρ/ρs', color: '#666' }, ticks: { color: '#666' } }, y: { title: { display: true, text: 'E (GPa)', color: '#666' }, ticks: { color: '#666' } } },
+            plugins: { legend: { labels: { color: '#fff', font: { size: 10 } } } }
+        }
+    });
+
     function updateCharts() {
         const mech = calculateMechanics();
         document.getElementById('e-display').innerText = mech.E + " GPa";
@@ -182,9 +242,12 @@
         }
         stressChart.data.datasets[0].data = data;
         stressChart.update('none');
+
+        const scalingData = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7].map(r => 500 * Math.pow(r, 2.8) * (0.5 + state.sp3));
+        scalingChart.data.datasets[0].data = scalingData;
+        scalingChart.update('none');
     }
 
-    // --- INTERACCIÓN ---
     document.getElementById('rho-slider').oninput = (e) => {
         state.rho = parseFloat(e.target.value);
         document.getElementById('rho-val').innerText = state.rho.toFixed(2);
@@ -204,15 +267,19 @@
         renderer.render(scene, camera);
     }
 
+    // Resize handler
+    function handleResize() {
+        const width = canvasContainer.clientWidth;
+        const height = canvasContainer.clientHeight;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+    }
+
+    window.addEventListener('resize', handleResize);
     buildFoam();
     updateCharts();
     animate();
-
-    window.addEventListener('resize', () => {
-        camera.aspect = (window.innerWidth - 440) / (window.innerHeight - 300);
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth - 440, window.innerHeight - 300);
-    });
 </script>
 </body>
 </html>
